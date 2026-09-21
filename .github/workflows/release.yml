@@ -1,0 +1,56 @@
+name: Publish Windows release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  PROJECT_PATH: SheetMusicViewer.csproj
+
+jobs:
+  publish:
+    name: Build and publish release.zip
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build both distributable variants
+        shell: pwsh
+        run: |
+          dotnet build $env:PROJECT_PATH -target:PublishStandalone
+          dotnet build $env:PROJECT_PATH -target:PublishFrameworkDependent
+
+      - name: Package release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+          Compress-Archive -Path dist/standalone, dist/framework-dependent, README.md, LICENSE `
+            -DestinationPath release/release.zip
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: release/release.zip
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: gh release create "${{ github.ref_name }}" release/release.zip --generate-notes
