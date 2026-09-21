@@ -1,0 +1,154 @@
+<Window x:Class="SheetMusicViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sheet Music PDF Viewer" Icon="pack://application:,,,/Assets/icon.png" Width="1400" Height="900" MinWidth="920" MinHeight="512"
+        Background="#202020" Foreground="White"
+        KeyDown="Window_KeyDown" PreviewMouseWheel="Window_PreviewMouseWheel" SizeChanged="Window_SizeChanged">
+  <DockPanel LastChildFill="True">
+    <Grid>
+    <Grid x:Name="PdfViewport" Background="#151515" Visibility="{Binding PdfContentVisibility}">
+      <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="12" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Background="#404040" ClipToBounds="True">
+          <Image x:Name="LeftPage" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+        <Border Grid.Column="2" Background="#404040" ClipToBounds="True">
+          <Image x:Name="RightPage" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+      </Grid>
+
+      <Button x:Name="PreviousPageButton" Style="{StaticResource PageTurnButton}"
+              HorizontalAlignment="Left" VerticalAlignment="Center" Margin="18,0,0,0"
+              Panel.ZIndex="10" IsEnabled="{Binding CanMovePrevious}" ToolTip="{Binding PreviousToolTip}" Click="Previous_Click">
+        <Path Data="M 23,0 L 0,20 L 23,40 Z" Fill="White" Width="23" Height="40" Stretch="Fill" />
+      </Button>
+      <Button x:Name="NextPageButton" Style="{StaticResource PageTurnButton}"
+              HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,18,0"
+              Panel.ZIndex="10" IsEnabled="{Binding CanMoveNext}" ToolTip="{Binding NextToolTip}" Click="Next_Click">
+        <Path Data="M 0,0 L 23,20 L 0,40 Z" Fill="White" Width="23" Height="40" Stretch="Fill" />
+      </Button>
+      <Button x:Name="ClosePdfButton" Style="{StaticResource OverlayIconButton}"
+              HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,18,18,0" Panel.ZIndex="10"
+              ToolTip="{Binding ClosePdfToolTip}" Click="ClosePdf_Click">
+        <TextBlock Text="×" Foreground="White" FontSize="25" FontWeight="Light" HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Button>
+      <Button x:Name="FullScreenButton" Style="{StaticResource OverlayIconButton}"
+              HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,60,18,0" Panel.ZIndex="10"
+              Visibility="{Binding FullScreenButtonVisibility}" ToolTip="{Binding FullScreenToolTip}" Click="FullScreenButton_Click">
+        <TextBlock Text="⤢" Foreground="White" FontFamily="Segoe UI Symbol" FontSize="25" FontWeight="Light"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Button>
+
+      <Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="18,0,0,18"
+              Panel.ZIndex="10" Background="#B82A2A2A" BorderBrush="#66808080" BorderThickness="1"
+              CornerRadius="4" Padding="9,4">
+        <Border.Effect>
+          <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.65" Color="Black" />
+        </Border.Effect>
+        <TextBlock Foreground="White" FontWeight="SemiBold" Text="{Binding LeftPageNumberText}" />
+      </Border>
+      <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,18,18"
+              Panel.ZIndex="10" Background="#B82A2A2A" BorderBrush="#66808080" BorderThickness="1"
+              CornerRadius="4" Padding="9,4">
+        <Border.Effect>
+          <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.65" Color="Black" />
+        </Border.Effect>
+        <TextBlock Foreground="White" FontWeight="SemiBold" Text="{Binding RightPageNumberText}" />
+      </Border>
+      <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,18"
+              Panel.ZIndex="10" Background="#B82A2A2A" BorderBrush="#66808080" BorderThickness="1"
+              CornerRadius="4" Padding="9,4" Visibility="{Binding ZoomIndicatorVisibility}">
+        <Border.Effect>
+          <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.65" Color="Black" />
+        </Border.Effect>
+        <TextBlock Foreground="White" FontWeight="SemiBold" Text="{Binding ZoomIndicatorText}" />
+      </Border>
+    </Grid>
+    <Grid x:Name="EmptyViewport" Background="#151515" Visibility="{Binding EmptyContentVisibility}" Margin="12">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="12" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+      <Border Grid.Column="0" Background="#303030" Padding="26">
+        <StackPanel>
+          <TextBlock FontSize="22" FontWeight="SemiBold" Text="Zuletzt geöffnete PDFs" />
+          <TextBlock Margin="0,5,0,18" Foreground="#CCCCCC" Text="Doppelklicken oder auswählen und öffnen." />
+          <ListBox x:Name="EmptyRecentFilesList" ItemsSource="{Binding RecentFiles}" MaxHeight="360"
+                   Visibility="{Binding RecentFilesVisibility}"
+                   MouseDoubleClick="EmptyRecentFilesList_MouseDoubleClick"
+                   KeyDown="EmptyRecentFilesList_KeyDown"
+                   Loaded="EmptyRecentFilesList_Loaded">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Margin="6" Text="{Binding}" TextTrimming="CharacterEllipsis" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock Visibility="{Binding NoRecentFilesVisibility}" Foreground="#CCCCCC"
+                     Text="Noch keine zuletzt geöffneten PDFs." />
+          <TextBlock Margin="0,8,0,0" Foreground="#FFB74D" TextWrapping="Wrap"
+                     Visibility="{Binding MissingRecentFileNoticeVisibility}"
+                     Text="{Binding MissingRecentFileNotice}" />
+          <TextBlock Margin="0,8,0,0" Foreground="#FF8A80" TextWrapping="Wrap"
+                     Visibility="{Binding PdfOpenErrorNoticeVisibility}"
+                     Text="{Binding PdfOpenErrorNotice}" />
+          <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+            <Button IsEnabled="{Binding HasRecentFiles}" Click="OpenSelectedRecent_Click">Auswahl öffnen</Button>
+            <Button Click="BrowsePdf_Click">Andere Datei suchen</Button>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+      <Border Grid.Column="2" Background="#303030" Padding="30">
+        <StackPanel>
+          <TextBlock FontSize="22" FontWeight="SemiBold" Text="Bedienung" />
+          <TextBlock Margin="0,8,0,24" Foreground="#CCCCCC" Text="Öffne eine Noten-PDF, um zu beginnen." />
+          <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition Width="96" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Style="{StaticResource KeyCap}"><TextBlock FontSize="17" FontWeight="SemiBold" Text="←" /></Border><TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Eine Seite zurückblättern" /></Grid>
+          <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition Width="96" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Style="{StaticResource KeyCap}"><TextBlock FontSize="17" FontWeight="SemiBold" Text="→" /></Border><TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Eine Seite weiterblättern" /></Grid>
+          <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition Width="96" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Style="{StaticResource KeyCap}"><TextBlock FontSize="14" FontWeight="SemiBold" Text="Mausrad" /></Border><TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Zoom ändern" /></Grid>
+          <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition Width="96" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><Border Style="{StaticResource KeyCap}" Margin="0,0,4,0"><TextBlock FontSize="17" FontWeight="SemiBold" Text="+" /></Border><Border Style="{StaticResource KeyCap}"><TextBlock FontSize="17" FontWeight="SemiBold" Text="−" /></Border></StackPanel><TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Zoom ändern" /></Grid>
+          <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition Width="96" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Style="{StaticResource KeyCap}"><TextBlock FontSize="14" FontWeight="SemiBold" Text="F11" /></Border><TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Vollbildmodus" /></Grid>
+          <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition Width="96" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Border Style="{StaticResource KeyCap}"><TextBlock FontSize="14" FontWeight="SemiBold" Text="ESC" /></Border><TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Vollbildmodus verlassen" /></Grid>
+          <Grid Height="4" Margin="0,26,0,16">
+            <Border Background="#171717" CornerRadius="2" />
+            <Border Background="#555555" CornerRadius="2" Margin="0,0,0,2" />
+          </Grid>
+          <TextBlock Foreground="#E0E0E0" FontSize="16" FontWeight="SemiBold" Text="Copyright" />
+          <TextBlock Margin="0,8,0,0" Foreground="#D0D0D0" FontSize="15" Text="© 2026" />
+          <TextBlock Margin="0,5,0,0" Foreground="#BFBFBF" TextWrapping="Wrap">
+            <Hyperlink NavigateUri="https://spdx.org/licenses/MIT.html" RequestNavigate="LicenseLink_RequestNavigate">MIT License</Hyperlink>
+            <Run Text=" – freie Nutzung, Veränderung und Weitergabe; ohne Gewährleistung." />
+          </TextBlock>
+          <StackPanel Margin="0,22,0,0">
+            <TextBlock Foreground="#E0E0E0" FontSize="16" FontWeight="SemiBold" Text="Open-Source-Komponenten" />
+            <TextBlock Margin="0,8,0,0" Foreground="#BFBFBF">
+              <Run Text="• " /><Hyperlink NavigateUri="https://github.com/dotnet/runtime" RequestNavigate="LicenseLink_RequestNavigate"><Run FontWeight="SemiBold" Text="Microsoft .NET 8 Runtime" /></Hyperlink><Run Text=", " />
+              <Hyperlink NavigateUri="https://spdx.org/licenses/MIT.html" RequestNavigate="LicenseLink_RequestNavigate">MIT License</Hyperlink>
+            </TextBlock>
+            <TextBlock Margin="0,5,0,0" Foreground="#BFBFBF">
+              <Run Text="• " /><Hyperlink NavigateUri="https://github.com/dotnet/wpf" RequestNavigate="LicenseLink_RequestNavigate"><Run FontWeight="SemiBold" Text="Windows Presentation Foundation (WPF)" /></Hyperlink><Run Text=", " />
+              <Hyperlink NavigateUri="https://spdx.org/licenses/MIT.html" RequestNavigate="LicenseLink_RequestNavigate">MIT License</Hyperlink>
+            </TextBlock>
+            <TextBlock Margin="0,5,0,0" Foreground="#BFBFBF" TextWrapping="Wrap">
+              <Run Text="• " /><Hyperlink NavigateUri="https://github.com/json-everything/json-everything" RequestNavigate="LicenseLink_RequestNavigate"><Run FontWeight="SemiBold" Text="JsonSchema.Net 9.4.0, JsonPointer.Net 7.0.2 und Json.More.Net 3.0.1" /></Hyperlink><Run Text=", " />
+              <Hyperlink NavigateUri="https://spdx.org/licenses/MIT.html" RequestNavigate="LicenseLink_RequestNavigate">MIT-Quelllizenz</Hyperlink><Run Text="; die Paket-EULA ist in der SBOM enthalten und ist vor kommerzieller Nutzung zu prüfen." />
+            </TextBlock>
+            <TextBlock Margin="0,5,0,0" Foreground="#BFBFBF" TextWrapping="Wrap">
+              <Run Text="• " /><Hyperlink NavigateUri="https://github.com/Humanizr/Humanizer" RequestNavigate="LicenseLink_RequestNavigate"><Run FontWeight="SemiBold" Text="Humanizer.Core 2.14.1" /></Hyperlink><Run Text=", " />
+              <Hyperlink NavigateUri="https://spdx.org/licenses/MIT.html" RequestNavigate="LicenseLink_RequestNavigate">MIT License</Hyperlink><Run Text="; Copyright-Hinweis und Lizenztext sind der Distribution beigefügt." />
+            </TextBlock>
+            <TextBlock Margin="0,5,0,0" Foreground="#BFBFBF" TextWrapping="Wrap">
+              <Run Text="• " /><Hyperlink NavigateUri="https://github.com/microsoft/CsWinRT" RequestNavigate="LicenseLink_RequestNavigate"><Run FontWeight="SemiBold" Text="C#/WinRT 2.2.0" /></Hyperlink><Run Text=" (Windows-API-Projektion), " />
+              <Hyperlink NavigateUri="https://spdx.org/licenses/MIT.html" RequestNavigate="LicenseLink_RequestNavigate">MIT License</Hyperlink><Run Text="; Copyright-Hinweis und Lizenztext sind der Distribution beigefügt." />
+            </TextBlock>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+    </Grid>
+  </DockPanel>
+</Window>

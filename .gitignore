@@ -1,0 +1,19 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+dist/
+
+# Visual Studio and user-specific files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# OS-generated files
+Thumbs.db
+.DS_Store

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sheetmusicviewer.local/schemas/settings/v1",
+  "title": "Sheet Music Viewer settings",
+  "description": "Configuration stored in %AppData%\\SheetMusicViewer\\settings.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "NextKey": {
+      "type": "string",
+      "enum": ["Left", "Right", "Up", "Down", "PageUp", "PageDown", "Home", "End"],
+      "default": "Right",
+      "description": "Bare key that moves to the next page."
+    },
+    "PreviousKey": {
+      "type": "string",
+      "enum": ["Left", "Right", "Up", "Down", "PageUp", "PageDown", "Home", "End"],
+      "default": "Left",
+      "description": "Bare key that moves to the previous page."
+    },
+    "ZoomInKey": {
+      "type": "string",
+      "enum": ["Add", "Subtract", "OemPlus", "OemMinus"],
+      "default": "Add",
+      "description": "Key that increases the zoom level."
+    },
+    "ZoomOutKey": {
+      "type": "string",
+      "enum": ["Add", "Subtract", "OemPlus", "OemMinus"],
+      "default": "Subtract",
+      "description": "Key that decreases the zoom level."
+    },
+    "Zoom": {
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 3.0,
+      "default": 1.0,
+      "description": "Current zoom factor."
+    },
+    "RecentFiles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "maxItems": 8,
+      "default": [],
+      "description": "Most recently opened PDF paths, newest first."
+    }
+  }
+}

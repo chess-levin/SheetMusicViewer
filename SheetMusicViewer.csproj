@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>sheet-music-viewer</AssemblyName>
+    <TargetFramework>net8.0-windows10.0.22000.0</TargetFramework>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="icon.png">
+      <Link>Assets\icon.png</Link>
+    </Resource>
+    <EmbeddedResource Include="settings.schema.json" />
+    <None Include="THIRD-PARTY-NOTICES.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" Version="9.4.0" />
+  </ItemGroup>
+
+  <Target Name="PublishStandalone">
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Restore;Publish"
+             Properties="Configuration=Release;RuntimeIdentifier=win-x64;SelfContained=true;PublishSingleFile=true;IncludeNativeLibrariesForSelfExtract=true;EnableCompressionInSingleFile=true;DebugType=None;DebugSymbols=false;PublishDir=$(MSBuildProjectDirectory)\dist\standalone\" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="dotnet tool restore" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="dotnet tool run dotnet-CycloneDX -- &quot;$(MSBuildProjectFullPath)&quot; --framework &quot;$(TargetFramework)&quot; --runtime win-x64 --output &quot;$(MSBuildProjectDirectory)\dist\standalone&quot; --output-format json --filename sbom.json --set-name sheet-music-viewer --set-version 1.0.0 --no-serial-number --include-license-text" />
+    <Copy SourceFiles="$(NuGetPackageRoot)microsoft.netcore.app.runtime.win-x64\8.0.31\THIRD-PARTY-NOTICES.TXT"
+          DestinationFiles="$(MSBuildProjectDirectory)\dist\standalone\DOTNET-THIRD-PARTY-NOTICES.txt" />
+  </Target>
+
+  <Target Name="PublishFrameworkDependent">
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Restore;Publish"
+             Properties="Configuration=Release;RuntimeIdentifier=win-x64;SelfContained=false;PublishSingleFile=true;IncludeNativeLibrariesForSelfExtract=true;AssemblyName=sheet-music-viewer-stripped;DebugType=None;DebugSymbols=false;PublishDir=$(MSBuildProjectDirectory)\dist\framework-dependent\" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="dotnet tool restore" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="dotnet tool run dotnet-CycloneDX -- &quot;$(MSBuildProjectFullPath)&quot; --framework &quot;$(TargetFramework)&quot; --runtime win-x64 --output &quot;$(MSBuildProjectDirectory)\dist\framework-dependent&quot; --output-format json --filename sbom.json --set-name sheet-music-viewer-stripped --set-version 1.0.0 --no-serial-number --include-license-text" />
+  </Target>
+</Project>
