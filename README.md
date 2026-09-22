@@ -63,8 +63,8 @@ Der Workflow [Publish Windows release](.github/workflows/release.yml) baut beide
 Ein Release wird durch einen Versions-Tag ausgelöst. Der Tag muss mit `v` beginnen:
 
 ```powershell
-git tag v1.0.0
-git push origin v1.0.0
+git tag v0.0.1
+git push origin v0.0.1
 ```
 
 Nach Abschluss des Workflows steht `release.zip` auf der GitHub-Seite des Releases zum Download bereit. Der Workflow kann außerdem manuell gestartet werden; dabei steht die ZIP-Datei als Actions-Artefakt zur Verfügung, es wird jedoch kein GitHub Release erstellt.
